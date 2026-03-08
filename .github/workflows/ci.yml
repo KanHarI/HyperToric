@@ -9,6 +9,7 @@ concurrency:
   cancel-in-progress: true
 env:
   TI_ARCH: cpu
+  TI_SKIP_VERSION_CHECK: "1"
 jobs:
   lint:
     runs-on: ubuntu-latest
