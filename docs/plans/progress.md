@@ -5,7 +5,7 @@
 | Chapter | Status | Branch | Dependencies |
 |---------|--------|--------|--------------|
 | [WC-1: Project Setup + CI](./wc-01-project-setup-ci.md) | [x] Complete | `wc-1-project-setup-ci` | — |
-| [WC-2: Config + Topology](./wc-02-config-topology.md) | [ ] Not Started | `wc-2-config-topology` | WC-1 |
+| [WC-2: Config + Topology](./wc-02-config-topology.md) | [x] Complete | `wc-2-config-topology` | WC-1 |
 | [WC-3: Taichi Fields](./wc-03-fields.md) | [ ] Not Started | `wc-3-fields` | WC-1, WC-2 |
 | [WC-4: Neuron Kernel](./wc-04-neuron-kernel.md) | [ ] Not Started | `wc-4-neuron-kernel` | WC-1, WC-2 |
 | [WC-5: Spike Propagation](./wc-05-propagation.md) | [ ] Not Started | `wc-5-propagation` | WC-3, WC-4 |

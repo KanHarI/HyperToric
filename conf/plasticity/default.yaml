@@ -1,0 +1,5 @@
+interval: 1000
+calcium_tau: 50.0
+calcium_threshold_low: 0.2
+calcium_threshold_high: 0.8
+w_max: 1.0

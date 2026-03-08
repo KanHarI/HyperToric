@@ -1,0 +1,11 @@
+defaults:
+  - _self_
+  - torus: default_3d
+  - neuron: default
+  - stdp: rotating
+  - plasticity: default
+  - io: tracking_1d
+  - training: static_target
+
+seed: 42
+backend: gpu
