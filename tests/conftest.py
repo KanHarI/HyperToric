@@ -14,10 +14,16 @@ def pytest_addoption(parser: pytest.Parser) -> None:
 
 
 @pytest.fixture(scope="session")
-def ti_cpu(request: pytest.FixtureRequest) -> Iterator[None]:
+def ti_runtime(request: pytest.FixtureRequest) -> Iterator[None]:
     """Initialize Taichi with the selected backend once per session."""
     arch_name = request.config.getoption("--ti-arch")
     arch = getattr(ti, arch_name)
     ti.init(arch=arch, offline_cache=False)
     yield
     ti.reset()
+
+
+@pytest.fixture(scope="session")
+def ti_cpu(ti_runtime: None) -> Iterator[None]:
+    """Backward-compatible alias for the ti_runtime fixture."""
+    yield
