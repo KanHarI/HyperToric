@@ -1,0 +1,6 @@
+sensory_axis: 0
+sensory_position: 0
+motor_axis: 0
+motor_position: 3
+sensory_cluster_size: 16
+motor_cluster_size: 16

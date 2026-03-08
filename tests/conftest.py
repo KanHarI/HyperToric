@@ -4,8 +4,9 @@ import pytest
 import taichi as ti
 
 
-@pytest.fixture(autouse=True)
-def _ti_reset() -> Iterator[None]:
+@pytest.fixture()
+def ti_cpu() -> Iterator[None]:
+    """Initialize Taichi with CPU backend. Use for tests that need Taichi."""
     ti.reset()
     ti.init(arch=ti.cpu)
     yield
