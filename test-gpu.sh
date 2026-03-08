@@ -9,11 +9,19 @@
 #   ./test-gpu.sh all              # run on all available backends sequentially
 set -euo pipefail
 
-ARCH="${1:-metal}"
 VALID_ARCHS=(cpu metal vulkan cuda)
 
+is_valid_arch() {
+    for valid in "${VALID_ARCHS[@]}"; do
+        [[ "$1" == "$valid" ]] && return 0
+    done
+    return 1
+}
+
+ARCH="${1:-metal}"
+
 if [[ "$ARCH" == "all" ]]; then
-    shift || true
+    shift
     for a in "${VALID_ARCHS[@]}"; do
         echo ""
         echo "=== Testing on ${a} backend ==="
@@ -27,14 +35,10 @@ if [[ "$ARCH" == "all" ]]; then
     exit 0
 fi
 
-for valid in "${VALID_ARCHS[@]}"; do
-    if [[ "$ARCH" == "$valid" ]]; then
-        shift || true
-        break
-    fi
-done
-# If no valid arch matched, default to metal and don't shift
-if [[ "$ARCH" != "cpu" && "$ARCH" != "metal" && "$ARCH" != "vulkan" && "$ARCH" != "cuda" ]]; then
+if is_valid_arch "$ARCH"; then
+    shift
+else
+    # First arg is not an arch — treat it as a pytest arg, default to metal
     ARCH="metal"
 fi
 
