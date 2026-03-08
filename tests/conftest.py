@@ -4,10 +4,26 @@ import pytest
 import taichi as ti
 
 
-@pytest.fixture()
-def ti_cpu() -> Iterator[None]:
-    """Initialize Taichi with CPU backend. Use for tests that need Taichi."""
-    ti.reset()
-    ti.init(arch=ti.cpu)
+def pytest_addoption(parser: pytest.Parser) -> None:
+    parser.addoption(
+        "--ti-arch",
+        default="cpu",
+        choices=["cpu", "metal", "vulkan", "cuda"],
+        help="Taichi backend architecture",
+    )
+
+
+@pytest.fixture(scope="session")
+def ti_runtime(request: pytest.FixtureRequest) -> Iterator[None]:
+    """Initialize Taichi with the selected backend once per session."""
+    arch_name = request.config.getoption("--ti-arch")
+    arch = getattr(ti, arch_name)
+    ti.init(arch=arch, offline_cache=False)
     yield
     ti.reset()
+
+
+@pytest.fixture(scope="session")
+def ti_cpu(ti_runtime: None) -> Iterator[None]:
+    """Backward-compatible alias for the ti_runtime fixture."""
+    yield
