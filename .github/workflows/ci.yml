@@ -10,6 +10,10 @@ concurrency:
 env:
   TI_ARCH: cpu
   TI_SKIP_VERSION_CHECK: "ON"
+  TI_OFFLINE_CACHE: "0"
+  TI_ENABLE_OPENGL: "0"
+  TI_ENABLE_VULKAN: "0"
+  TI_ENABLE_CUDA: "0"
 jobs:
   lint:
     runs-on: ubuntu-22.04
@@ -36,7 +40,10 @@ jobs:
       - uses: astral-sh/setup-uv@v4
       - run: uv python install ${{ matrix.python-version }}
       - run: uv sync --frozen --python ${{ matrix.python-version }}
-      - run: uv run pytest -m "not gpu and not slow" -v || [ $? -eq 5 ]
+      - name: Verify Taichi CPU backend
+        run: uv run python -c "import taichi as ti; ti.init(arch=ti.cpu, offline_cache=False); print('Taichi CPU OK'); ti.reset()"
+      - name: Run tests
+        run: uv run pytest -m "not gpu and not slow" -v --forked || [ $? -eq 5 ]
   integration:
     runs-on: ubuntu-22.04
     needs: [test]
