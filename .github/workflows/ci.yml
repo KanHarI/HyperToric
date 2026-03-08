@@ -12,7 +12,7 @@ env:
   TI_SKIP_VERSION_CHECK: "ON"
 jobs:
   lint:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v4
@@ -20,14 +20,14 @@ jobs:
       - run: uv run ruff check src/ tests/
       - run: uv run ruff format --check src/ tests/
   typecheck:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v4
       - run: uv sync --frozen
       - run: uv run mypy src/
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         python-version: ["3.11", "3.12", "3.13"]
@@ -38,7 +38,7 @@ jobs:
       - run: uv sync --frozen --python ${{ matrix.python-version }}
       - run: uv run pytest -m "not gpu and not slow" -v || [ $? -eq 5 ]
   integration:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [test]
     steps:
       - uses: actions/checkout@v4
