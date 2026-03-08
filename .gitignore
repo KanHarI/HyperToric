@@ -2,3 +2,10 @@
 __pycache__/
 *.pyc
 .claude/
+*.egg-info/
+dist/
+.mypy_cache/
+.pytest_cache/
+htmlcov/
+.coverage
+outputs/
