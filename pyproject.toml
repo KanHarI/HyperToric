@@ -20,7 +20,6 @@ vis = ["matplotlib"]
 [dependency-groups]
 dev = [
     "pytest>=8.0",
-    "pytest-cov>=6.0",
     "pytest-timeout>=2.0",
     "pytest-forked>=1.6",
     "ruff>=0.9",
@@ -72,10 +71,3 @@ select = ["E", "W", "F", "I", "N", "UP", "B", "SIM", "TCH"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["hypertoric"]
-
-[tool.coverage.run]
-source = ["hypertoric"]
-
-[tool.coverage.report]
-fail_under = 0
-show_missing = true
