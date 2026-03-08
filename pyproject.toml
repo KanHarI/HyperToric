@@ -1,0 +1,20 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "hypertoric"
+version = "0.1.0"
+description = "GPU-accelerated numeric simulations using taichi"
+requires-python = ">=3.11,<3.14"
+dependencies = [
+    "taichi>=1.7.4",
+    "numpy>=1.26",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "ruff"]
+vis = ["matplotlib"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/hypertoric"]
