@@ -36,7 +36,7 @@ jobs:
       - uses: astral-sh/setup-uv@v4
       - run: uv python install ${{ matrix.python-version }}
       - run: uv sync --frozen --python ${{ matrix.python-version }}
-      - run: uv run pytest -m "not gpu and not slow" --cov -v || [ $? -eq 5 ]
+      - run: uv run pytest -m "not gpu and not slow" -v || [ $? -eq 5 ]
   integration:
     runs-on: ubuntu-latest
     needs: [test]
