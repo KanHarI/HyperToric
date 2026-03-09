@@ -62,6 +62,10 @@ class IOConfig:
     motor_position: int = field(default=3)
     sensory_cluster_size: int = 16
     motor_cluster_size: int = 16
+    tau_motor: float = 20.0  # motor rate smoothing (ms)
+    k_threshold: float = 1.5  # dead zone width in std devs
+    momentum: float = 0.999  # adaptive threshold momentum
+    base_current: float = 15.0  # sensory encoding base current
 
 
 @dataclass
