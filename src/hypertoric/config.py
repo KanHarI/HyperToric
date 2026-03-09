@@ -105,6 +105,11 @@ def validate_config(cfg: SimConfig) -> None:
         msg = f"excitatory_ratio must be in (0, 1), got {cfg.neuron.excitatory_ratio}"
         raise ValueError(msg)
 
+    # STDP constraints
+    if cfg.stdp.inter_mode not in {"rotating", "all"}:
+        msg = f"inter_mode must be 'rotating' or 'all', got {cfg.stdp.inter_mode!r}"
+        raise ValueError(msg)
+
     # STDP stability warning
     if cfg.stdp.a_minus <= cfg.stdp.a_plus:
         warnings.warn(
@@ -137,6 +142,9 @@ def validate_config(cfg: SimConfig) -> None:
         raise ValueError(msg)
 
     # Plasticity constraints
+    if cfg.plasticity.interval <= 0:
+        msg = f"interval must be > 0, got {cfg.plasticity.interval}"
+        raise ValueError(msg)
     if cfg.plasticity.weight_threshold <= 0:
         msg = f"weight_threshold must be > 0, got {cfg.plasticity.weight_threshold}"
         raise ValueError(msg)
