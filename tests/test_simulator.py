@@ -137,7 +137,7 @@ class TestSTDPRotation:
 
         directions_seen = set()
         for _ in range(num_neighbors):
-            directions_seen.add(s._stdp_direction)
+            directions_seen.add(s.stdp_direction)
             s.step()
 
         assert directions_seen == set(range(num_neighbors))

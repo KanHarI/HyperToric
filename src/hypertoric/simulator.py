@@ -60,6 +60,10 @@ class Simulator:
     def topology(self) -> "Topology":
         return self._topo
 
+    @property
+    def stdp_direction(self) -> int:
+        return self._stdp_direction
+
     def inject_current(self, current: "NDArray[np.float32]") -> None:
         """Set external current field from numpy array of shape (B, K)."""
         self._fields.I_ext.from_numpy(current)
