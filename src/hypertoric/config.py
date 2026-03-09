@@ -72,9 +72,15 @@ class IOConfig:
 class TrainingConfig:
     """Task and training loop parameters."""
 
-    task: str = "static_target"
+    task: str = "tracking_1d"
     feedback_tau: float = 100.0
-    num_steps: int = 10000
+    max_epochs: int = 100
+    ticks_per_epoch: int = 1000
+    game_tick_steps: int = 50  # sim steps per game tick
+    num_positions: int = 8  # discrete cursor/target positions
+    step_interval: int = 100  # Level 1: ticks between target jumps
+    ramp_interval: int = 20  # Level 2: ticks between ramp moves
+    sine_period: float = 200.0  # Level 3: sine wave period in ticks
 
 
 @dataclass
@@ -182,6 +188,29 @@ def validate_config(cfg: SimConfig) -> None:
         )
         raise ValueError(msg)
 
+    # Training constraints
+    if cfg.training.max_epochs <= 0:
+        msg = f"max_epochs must be > 0, got {cfg.training.max_epochs}"
+        raise ValueError(msg)
+    if cfg.training.ticks_per_epoch <= 0:
+        msg = f"ticks_per_epoch must be > 0, got {cfg.training.ticks_per_epoch}"
+        raise ValueError(msg)
+    if cfg.training.game_tick_steps <= 0:
+        msg = f"game_tick_steps must be > 0, got {cfg.training.game_tick_steps}"
+        raise ValueError(msg)
+    if cfg.training.num_positions < 2:
+        msg = f"num_positions must be >= 2, got {cfg.training.num_positions}"
+        raise ValueError(msg)
+    if cfg.training.step_interval <= 0:
+        msg = f"step_interval must be > 0, got {cfg.training.step_interval}"
+        raise ValueError(msg)
+    if cfg.training.ramp_interval <= 0:
+        msg = f"ramp_interval must be > 0, got {cfg.training.ramp_interval}"
+        raise ValueError(msg)
+    if cfg.training.sine_period <= 0:
+        msg = f"sine_period must be > 0, got {cfg.training.sine_period}"
+        raise ValueError(msg)
+
 
 def _register_configs() -> None:
     """Register structured configs with Hydra ConfigStore."""
@@ -203,11 +232,11 @@ def _register_configs() -> None:
     cs.store(group="stdp", name="all", node=STDPConfig(inter_mode="all"))
     cs.store(group="plasticity", name="default", node=PlasticityConfig())
     cs.store(group="io", name="tracking_1d", node=IOConfig())
-    cs.store(group="training", name="static_target", node=TrainingConfig())
+    cs.store(group="training", name="tracking_1d", node=TrainingConfig())
     cs.store(
         group="training",
-        name="slow_step",
-        node=TrainingConfig(task="slow_step", num_steps=50000),
+        name="static_target",
+        node=TrainingConfig(task="static_target", step_interval=999999),
     )
 
 

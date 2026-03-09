@@ -14,7 +14,7 @@ from hypertoric.config import (
     validate_config,
 )
 
-CONF_DIR = str(Path(__file__).resolve().parent.parent / "conf")
+CONF_DIR = str(Path(__file__).resolve().parent.parent / "src" / "hypertoric" / "conf")
 
 
 class TestDefaults:

@@ -1,0 +1,9 @@
+task: static_target
+feedback_tau: 100.0
+max_epochs: 100
+ticks_per_epoch: 1000
+game_tick_steps: 50
+num_positions: 8
+step_interval: 999999
+ramp_interval: 20
+sine_period: 200.0
