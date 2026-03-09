@@ -46,13 +46,13 @@ def make_structural_intra(b: int, k: int) -> Any:
         for block_idx, i in ti.ndrange(b, k):
             ca = calcium[block_idx, i]
             if ca < calcium_low:
-                # Grow one synapse: pick random slot
+                # Grow one synapse: pick random slot, skip if occupied or self
                 j = ti.cast(ti.random() * k, ti.i32)
                 j = ti.min(j, k - 1)
                 if j != i and w_intra[block_idx, j, i] == 0.0:
-                    w_intra[block_idx, j, i] = init_weight
+                    w_intra[block_idx, j, i] = ti.min(init_weight, w_max)
             elif ca > calcium_high:
-                # Prune one synapse: pick random non-zero slot
+                # Prune one synapse: pick random slot, prune if occupied
                 j = ti.cast(ti.random() * k, ti.i32)
                 j = ti.min(j, k - 1)
                 if w_intra[block_idx, j, i] != 0.0:
@@ -61,7 +61,7 @@ def make_structural_intra(b: int, k: int) -> Any:
     return structural_intra
 
 
-def make_structural_inter(b: int, k: int, grid_size: int, ndim: int) -> Any:
+def make_structural_inter(b: int, k: int) -> Any:
     """Factory returning a compiled inter-block structural plasticity kernel."""
 
     @ti.kernel
@@ -85,13 +85,13 @@ def make_structural_inter(b: int, k: int, grid_size: int, ndim: int) -> Any:
         for block_idx, i in ti.ndrange(b, k):
             ca = calcium[block_idx, i]
             if ca < calcium_low:
-                # Grow one synapse (always positive/excitatory)
+                # Grow one synapse: pick random slot, skip if occupied
                 j = ti.cast(ti.random() * k, ti.i32)
                 j = ti.min(j, k - 1)
                 if w_inter[block_idx, direction, j, i] == 0.0:
-                    w_inter[block_idx, direction, j, i] = init_weight
+                    w_inter[block_idx, direction, j, i] = ti.min(init_weight, w_max)
             elif ca > calcium_high:
-                # Prune one synapse
+                # Prune one synapse: pick random slot, prune if occupied
                 j = ti.cast(ti.random() * k, ti.i32)
                 j = ti.min(j, k - 1)
                 if w_inter[block_idx, direction, j, i] != 0.0:

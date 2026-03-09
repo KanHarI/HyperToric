@@ -49,7 +49,7 @@ def build_kernels(
     stdp_inter = make_stdp_inter(b, k, grid_size, ndim)
     calcium_update = make_calcium_update(b, k)
     structural_intra = make_structural_intra(b, k)
-    structural_inter = make_structural_inter(b, k, grid_size, ndim)
+    structural_inter = make_structural_inter(b, k)
     return KernelSet(
         neuron_update=neuron_update,
         spike_propagate=spike_propagate,
