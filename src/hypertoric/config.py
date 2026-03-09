@@ -62,6 +62,10 @@ class IOConfig:
     motor_position: int = field(default=3)
     sensory_cluster_size: int = 16
     motor_cluster_size: int = 16
+    tau_motor: float = 20.0  # motor rate smoothing (ms)
+    k_threshold: float = 1.5  # dead zone width in std devs
+    momentum: float = 0.999  # adaptive threshold momentum
+    base_current: float = 15.0  # sensory encoding base current
 
 
 @dataclass
@@ -118,6 +122,20 @@ def validate_config(cfg: SimConfig) -> None:
             UserWarning,
             stacklevel=2,
         )
+
+    # I/O numeric constraints
+    if cfg.io.tau_motor <= 0.0:
+        msg = f"tau_motor must be > 0, got {cfg.io.tau_motor}"
+        raise ValueError(msg)
+    if cfg.io.k_threshold < 0.0:
+        msg = f"k_threshold must be >= 0, got {cfg.io.k_threshold}"
+        raise ValueError(msg)
+    if not (0.0 <= cfg.io.momentum < 1.0):
+        msg = f"momentum must be in [0, 1), got {cfg.io.momentum}"
+        raise ValueError(msg)
+    if cfg.io.base_current < 0.0:
+        msg = f"base_current must be >= 0, got {cfg.io.base_current}"
+        raise ValueError(msg)
 
     # I/O constraints
     if cfg.io.sensory_axis >= cfg.torus.ndim:
