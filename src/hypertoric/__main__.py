@@ -15,19 +15,17 @@ from hypertoric.config import (
 
 def to_sim_config(cfg: DictConfig) -> SimConfig:
     """Convert a Hydra DictConfig to a typed SimConfig."""
-    return SimConfig(
-        torus=OmegaConf.to_object(cfg.torus),  # type: ignore[arg-type]
-        neuron=OmegaConf.to_object(cfg.neuron),  # type: ignore[arg-type]
-        stdp=OmegaConf.to_object(cfg.stdp),  # type: ignore[arg-type]
-        plasticity=OmegaConf.to_object(cfg.plasticity),  # type: ignore[arg-type]
-        io=OmegaConf.to_object(cfg.io),  # type: ignore[arg-type]
-        training=OmegaConf.to_object(cfg.training),  # type: ignore[arg-type]
-        seed=cfg.seed,
-        backend=cfg.backend,
-    )
+    schema = OmegaConf.structured(SimConfig)
+    merged = OmegaConf.merge(schema, cfg)
+    return OmegaConf.to_object(merged)  # type: ignore[return-value]
 
 
-CONF_DIR = str(Path(__file__).resolve().parent.parent.parent / "conf")
+CONF_DIR = str(Path(__file__).resolve().parent / "conf")
+
+_TASK_LEVELS = {
+    "static_target": 0,
+    "tracking_1d": 1,
+}
 
 
 @hydra.main(version_base=None, config_path=CONF_DIR, config_name="config")
@@ -48,6 +46,11 @@ def main(cfg: DictConfig) -> None:
         sim.topology, sim_cfg.io, sim_cfg.torus.neurons_per_block, sim_cfg.seed
     )
     task = TargetTracking1D(sim_cfg.training, seed=sim_cfg.seed)
+    task_name = sim_cfg.training.task
+    if task_name not in _TASK_LEVELS:
+        msg = f"Unknown task {task_name!r}, expected one of {list(_TASK_LEVELS)}"
+        raise ValueError(msg)
+    task.level = _TASK_LEVELS[task_name]
 
     dt = sim_cfg.neuron.dt
     train = sim_cfg.training
