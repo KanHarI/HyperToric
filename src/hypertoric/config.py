@@ -24,6 +24,7 @@ class NeuronConfig:
     model: str = "izhikevich"
     excitatory_ratio: float = 0.8
     dt: float = 0.5  # ms
+    tau_syn: float = 5.0  # synaptic decay time constant (ms)
 
 
 @dataclass
@@ -41,11 +42,14 @@ class STDPConfig:
 class PlasticityConfig:
     """Structural plasticity parameters."""
 
-    interval: int = 1000  # timesteps between plasticity updates
+    interval: int = 1000  # timesteps between intra-block plasticity updates
+    inter_interval: int = 10000  # inter-block structural plasticity interval
     calcium_tau: float = 50.0
     calcium_threshold_low: float = 0.2
     calcium_threshold_high: float = 0.8
     w_max: float = 1.0
+    weight_threshold: float = 0.001  # prune synapses below this |weight|
+    init_weight: float = 0.01  # weight for newly grown synapses
 
 
 @dataclass
@@ -124,6 +128,31 @@ def validate_config(cfg: SimConfig) -> None:
         msg = (
             "sensory and motor planes must differ: "
             f"both at axis={cfg.io.sensory_axis}, position={cfg.io.sensory_position}"
+        )
+        raise ValueError(msg)
+
+    # Neuron tau_syn
+    if cfg.neuron.tau_syn <= 0:
+        msg = f"tau_syn must be > 0, got {cfg.neuron.tau_syn}"
+        raise ValueError(msg)
+
+    # Plasticity constraints
+    if cfg.plasticity.weight_threshold <= 0:
+        msg = f"weight_threshold must be > 0, got {cfg.plasticity.weight_threshold}"
+        raise ValueError(msg)
+    if (
+        cfg.plasticity.init_weight <= 0
+        or cfg.plasticity.init_weight > cfg.plasticity.w_max
+    ):
+        msg = (
+            f"init_weight must be in (0, w_max], got {cfg.plasticity.init_weight} "
+            f"(w_max={cfg.plasticity.w_max})"
+        )
+        raise ValueError(msg)
+    if cfg.plasticity.inter_interval < cfg.plasticity.interval:
+        msg = (
+            f"inter_interval ({cfg.plasticity.inter_interval}) must be >= "
+            f"interval ({cfg.plasticity.interval})"
         )
         raise ValueError(msg)
 
