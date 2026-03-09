@@ -123,6 +123,20 @@ def validate_config(cfg: SimConfig) -> None:
             stacklevel=2,
         )
 
+    # I/O numeric constraints
+    if cfg.io.tau_motor <= 0.0:
+        msg = f"tau_motor must be > 0, got {cfg.io.tau_motor}"
+        raise ValueError(msg)
+    if cfg.io.k_threshold < 0.0:
+        msg = f"k_threshold must be >= 0, got {cfg.io.k_threshold}"
+        raise ValueError(msg)
+    if not (0.0 <= cfg.io.momentum < 1.0):
+        msg = f"momentum must be in [0, 1), got {cfg.io.momentum}"
+        raise ValueError(msg)
+    if cfg.io.base_current < 0.0:
+        msg = f"base_current must be >= 0, got {cfg.io.base_current}"
+        raise ValueError(msg)
+
     # I/O constraints
     if cfg.io.sensory_axis >= cfg.torus.ndim:
         msg = f"sensory_axis ({cfg.io.sensory_axis}) must be < ndim ({cfg.torus.ndim})"

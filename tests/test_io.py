@@ -31,9 +31,7 @@ def _make_cfg() -> SimConfig:
     )
 
 
-def _make_io(
-    cfg: SimConfig, topo: Topology, fields: SimFields, seed: int = SEED
-) -> IOManager:
+def _make_io(cfg: SimConfig, topo: Topology, seed: int = SEED) -> IOManager:
     return IOManager(topo, cfg.io, cfg.torus.neurons_per_block, seed)
 
 
@@ -56,7 +54,7 @@ def fields(cfg: SimConfig, topo: Topology, ti_runtime: None) -> SimFields:
 
 @pytest.fixture()
 def io_mgr(cfg: SimConfig, topo: Topology, fields: SimFields) -> IOManager:
-    return _make_io(cfg, topo, fields)
+    return _make_io(cfg, topo)
 
 
 class TestPlaneSelection:
@@ -80,6 +78,27 @@ class TestPlaneSelection:
 
     def test_disjoint(self, io_mgr: IOManager) -> None:
         assert set(io_mgr.sensory_blocks).isdisjoint(set(io_mgr.motor_blocks))
+
+    def test_different_axes(self, ti_runtime: None) -> None:
+        """Motor blocks use motor_axis when it differs from sensory_axis."""
+        ndim = 3
+        grid = 4
+        c = SimConfig(
+            torus=TorusConfig(ndim=ndim, grid_size=grid, neurons_per_block=K),
+            io=IOConfig(
+                sensory_axis=0,
+                sensory_position=0,
+                motor_axis=1,
+                motor_position=2,
+            ),
+        )
+        t = Topology(ndim, grid)
+        mgr = IOManager(t, c.io, K, seed=SEED)
+
+        for blk in mgr.sensory_blocks:
+            assert t.flat_to_coord(blk)[0] == 0
+        for blk in mgr.motor_blocks:
+            assert t.flat_to_coord(blk)[1] == 2
 
 
 class TestSensoryEncoding:
@@ -156,13 +175,14 @@ class TestMotorDecoding:
         io_mgr.diff_mean = 0.0
         io_mgr.diff_var = 1.0
 
-        half_k = K // 2
+        cluster = min(cfg.io.motor_cluster_size, K)
+        up_count = cluster // 2 + (cluster % 2)
         dt = 0.5
 
         for _ in range(100):
             spikes = np.zeros((B, K), dtype=np.int32)
             for blk in io_mgr.motor_blocks:
-                spikes[blk, :half_k] = 1  # all up neurons fire
+                spikes[blk, :up_count] = 1  # all up neurons fire
             fields.spikes.from_numpy(spikes)
             io_mgr.update_motor_rates(fields, dt)
 
@@ -201,7 +221,7 @@ class TestFeedback:
             i_ext = fields.I_ext.to_numpy()
             for blk in io_mgr.sensory_blocks:
                 vals = i_ext[blk, :cluster]
-                np.testing.assert_array_equal(vals, 15.0)
+                np.testing.assert_array_equal(vals, cfg.io.base_current)
 
     def test_distance_large_always_chaotic(
         self, cfg: SimConfig, topo: Topology, fields: SimFields
@@ -230,7 +250,7 @@ class TestFeedback:
             io_mgr.deliver_feedback(1, fields)
             i_ext = fields.I_ext.to_numpy()
             vals = i_ext[io_mgr.sensory_blocks[0], :cluster]
-            if np.all(vals == 15.0):
+            if np.all(vals == cfg.io.base_current):
                 ordered_count += 1
 
         ratio = ordered_count / n_trials
@@ -239,13 +259,13 @@ class TestFeedback:
     def test_ordered_uniform_amplitude(
         self, cfg: SimConfig, topo: Topology, fields: SimFields
     ) -> None:
-        """Ordered pulses have uniform amplitude of 15.0."""
+        """Ordered pulses have uniform amplitude equal to base_current."""
         io_mgr = IOManager(topo, cfg.io, K, seed=0)
         io_mgr.deliver_feedback(0, fields)
         i_ext = fields.I_ext.to_numpy()
         cluster = cfg.io.sensory_cluster_size
         for blk in io_mgr.sensory_blocks:
-            np.testing.assert_array_equal(i_ext[blk, :cluster], 15.0)
+            np.testing.assert_array_equal(i_ext[blk, :cluster], cfg.io.base_current)
 
     def test_chaotic_varied_amplitude(
         self, cfg: SimConfig, topo: Topology, fields: SimFields

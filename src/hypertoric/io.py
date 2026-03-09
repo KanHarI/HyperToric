@@ -36,7 +36,7 @@ class IOManager:
             io_config.sensory_axis, io_config.sensory_position
         )
         self.motor_blocks = topology.get_plane(
-            io_config.sensory_axis, io_config.motor_position
+            io_config.motor_axis, io_config.motor_position
         )
 
         # Motor rate traces
@@ -72,13 +72,16 @@ class IOManager:
     def update_motor_rates(self, fields: SimFields, dt: float) -> None:
         """Update exponentially-decayed motor rate traces from spike counts."""
         spikes = fields.spikes.to_numpy()
-        half_k = self._k // 2
+
+        cluster = min(self._cfg.motor_cluster_size, self._k)
+        up_count = cluster // 2 + (cluster % 2)
+        down_count = cluster - up_count
 
         spike_count_up = 0
         spike_count_down = 0
         for block in self.motor_blocks:
-            spike_count_up += int(np.sum(spikes[block, :half_k]))
-            spike_count_down += int(np.sum(spikes[block, half_k:]))
+            spike_count_up += int(np.sum(spikes[block, :up_count]))
+            spike_count_down += int(np.sum(spikes[block, self._k - down_count :]))
 
         decay = math.exp(-dt / self._cfg.tau_motor)
         self.rate_up = self.rate_up * decay + spike_count_up
@@ -88,8 +91,9 @@ class IOManager:
         """Decode motor rates into a discrete movement: +1, -1, or 0."""
         diff = self.rate_up - self.rate_down
         m = self._cfg.momentum
-        self.diff_mean = m * self.diff_mean + (1.0 - m) * diff
-        self.diff_var = m * self.diff_var + (1.0 - m) * (diff - self.diff_mean) ** 2
+        prev_mean = self.diff_mean
+        self.diff_mean = m * prev_mean + (1.0 - m) * diff
+        self.diff_var = m * self.diff_var + (1.0 - m) * (diff - prev_mean) ** 2
 
         threshold = self._cfg.k_threshold * math.sqrt(self.diff_var + 1e-8)
         centered = diff - self.diff_mean
@@ -115,10 +119,15 @@ class IOManager:
         cluster = min(self._cfg.sensory_cluster_size, self._k)
         i_ext = fields.I_ext.to_numpy()
 
+        ordered_amplitude = self._cfg.base_current
+        random_max = self._cfg.base_current * (20.0 / 15.0)
+
         for block in self.sensory_blocks:
             if ordered:
-                i_ext[block, :cluster] = 15.0
+                i_ext[block, :cluster] = ordered_amplitude
             else:
-                i_ext[block, :cluster] = self._rng.uniform(0.0, 20.0, size=cluster)
+                i_ext[block, :cluster] = self._rng.uniform(
+                    0.0, random_max, size=cluster
+                )
 
         fields.I_ext.from_numpy(i_ext)
