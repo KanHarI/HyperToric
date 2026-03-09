@@ -48,7 +48,6 @@ class TestIntraBlock:
         i_syn, spikes, w_intra, w_inter = fields
 
         # Set W_intra[0, 0, 1] = 0.5 (neuron 0 → neuron 1 in block 0)
-        w_intra.from_numpy(np.zeros((B, K, K), dtype=np.float32))
         w_inter.from_numpy(np.zeros((B, 2 * NDIM, K, K), dtype=np.float32))
         np_w = np.zeros((B, K, K), dtype=np.float32)
         np_w[0, 0, 1] = 0.5
