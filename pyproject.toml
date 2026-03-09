@@ -76,6 +76,11 @@ module = "hypertoric.kernels.plasticity"
 disallow_untyped_defs = false
 disallow_untyped_decorators = false
 
+[[tool.mypy.overrides]]
+module = "hypertoric.simulator"
+disallow_untyped_defs = false
+disallow_untyped_decorators = false
+
 [tool.ruff]
 target-version = "py311"
 line-length = 88
