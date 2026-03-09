@@ -11,6 +11,7 @@ class KernelSet:
     """Container for all compiled Taichi kernels used in the simulation."""
 
     neuron_update: Any  # NeuronUpdateFn — compiled @ti.kernel
+    spike_propagate: Any  # compiled @ti.kernel
     trace_update: Any  # compiled @ti.kernel
     stdp_intra: Any  # compiled @ti.kernel
     stdp_inter: Any  # compiled @ti.kernel
@@ -25,6 +26,7 @@ def build_kernels(
 ) -> KernelSet:
     """Build all simulation kernels with dimensions baked in."""
     from hypertoric.kernels.neuron_models import get_neuron_factory
+    from hypertoric.kernels.propagate import make_spike_propagate
     from hypertoric.kernels.stdp import (
         make_stdp_inter,
         make_stdp_intra,
@@ -33,11 +35,13 @@ def build_kernels(
 
     factory = get_neuron_factory(model_name)
     neuron_update = factory(b, k)
+    spike_propagate = make_spike_propagate(b, k, grid_size, ndim)
     trace_update = make_trace_update(b, k)
     stdp_intra = make_stdp_intra(b, k)
     stdp_inter = make_stdp_inter(b, k, grid_size, ndim)
     return KernelSet(
         neuron_update=neuron_update,
+        spike_propagate=spike_propagate,
         trace_update=trace_update,
         stdp_intra=stdp_intra,
         stdp_inter=stdp_inter,
