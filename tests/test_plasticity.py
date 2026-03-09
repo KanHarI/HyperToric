@@ -41,7 +41,7 @@ def intra_kernel(ti_runtime: None) -> object:
 
 @pytest.fixture(scope="module")
 def inter_kernel(ti_runtime: None) -> object:
-    return make_structural_inter(B, K, GRID_SIZE, NDIM)
+    return make_structural_inter(B, K)
 
 
 @pytest.fixture()
@@ -343,6 +343,7 @@ class TestStructuralInter:
         """Growth produces positive (excitatory) weights."""
         w_inter, calcium = inter_fields
 
+        grew = 0
         for _ in range(100):
             w_inter.from_numpy(np.zeros((B, N_NEIGHBORS, K, K), dtype=np.float32))
             np_ca = np.full((B, K), CALCIUM_LOW / 2, dtype=np.float32)
@@ -360,10 +361,13 @@ class TestStructuralInter:
             )
 
             result = w_inter.to_numpy()
-            # Any new weights should be positive
             nonzero = result[result != 0.0]
             if len(nonzero) > 0:
+                grew += 1
                 assert np.all(nonzero > 0.0)
+
+        # Ensure growth actually happened in a significant fraction of trials
+        assert grew > 10
 
     def test_direction_isolation(
         self,
